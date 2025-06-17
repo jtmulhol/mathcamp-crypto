@@ -4,7 +4,7 @@
 ##### TO PRINT WHEN IMPORTED
 ##################################################################
 
-print("Welcome to the SFU Crytpo Python Package")
+print("Welcome to the SFU Crypto Python Package")
 print("Functions available for use:")
 print("")
 print("-------------------------------------------------------------")
