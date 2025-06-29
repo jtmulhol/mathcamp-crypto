@@ -21,6 +21,8 @@ print("    shiftEncrypt(key, message, symbolList='ABCDEFGHIJKLMNOPQRSTUVWXYZ')")
 print("    shiftDecrypt(key, message, symbolList='ABCDEFGHIJKLMNOPQRSTUVWXYZ')")
 print("    transpositionEncrypt(key, message)") 
 print("    transpositionDecrypt(key, message)")
+print("    columnarEncrypt(keyword, message):")
+print("    columnarDecrypt(keyword, message):")
 print("    affineEncrypt(keyA, keyB, message, symbolList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')") 
 print("    affineDecrypt(keyA, keyB, message, symbolList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')")
 print("    vigenereEncrypt(key, message, symbolList = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')")
@@ -335,6 +337,90 @@ def transpositionDecrypt(key, message):
     return ''.join(plaintext)
 
 
+##################################################################
+#####
+#####    Columnar Transposition Cipher
+#####
+##################################################################
+
+import math
+
+def columnarEncrypt(keyword, message):
+    # --- 1. Create the grid columns ---
+    # Each string in ciphertext_cols represents a column in the grid.
+    # The number of columns is the length of the keyword.
+    ciphertext_cols = [''] * len(keyword)
+
+    # --- 2. Fill the grid ---
+    # Loop through each character in the message and add it to a column.
+    for col, char in enumerate(message):
+        column_index = col % len(keyword)
+        ciphertext_cols[column_index] += char
+        
+    # --- 3. Determine the column order from the keyword ---
+    # Create a list of tuples: (character, original_index)
+    # e.g., for "ZEBRAS": [('Z', 0), ('E', 1), ('B', 2), ('R', 3), ('A', 4), ('S', 5)]
+    # Python's sort is stable, which handles repeated letters correctly.
+    key_order = sorted([(char, i) for i, char in enumerate(keyword)])
+
+    # --- 4. Read the columns in the new order to create the ciphertext ---
+    ciphertext = ""
+    for char, original_index in key_order:
+        ciphertext += ciphertext_cols[original_index]
+        
+    return ciphertext
+
+
+def columnarDecrypt(keyword, message):
+    # The transposition decrypt function will simulate the "columns" and
+    # "rows" of the grid that the plaintext is written on.
+
+    key_len = len(keyword)
+    
+    # --- 1. Calculate grid dimensions ---
+    # The number of "columns" in our transposition grid:
+    num_of_cols = math.ceil(len(message) / key_len)
+    # The number of "rows" in our grid (is determined by the keyword length):
+    num_of_rows = key_len
+    # The number of "shaded boxes" in the last "column" of the grid:
+    num_of_shaded_boxes = (num_of_cols * num_of_rows) - len(message)
+
+    # --- 2. Determine the column order from the keyword ---
+    # This is the same logic as in the encryption function.
+    key_order = sorted([(char, i) for i, char in enumerate(keyword)])
+
+    # --- 3. Un-scramble the message columns ---
+    # Create a list to hold the columns in their correct (0, 1, 2...) order.
+    plaintext_cols = [''] * num_of_rows
+    # Keep track of the current position in the encrypted message string.
+    message_pointer = 0
+    
+    # The number of columns that are "full" (not missing a character from a shaded box)
+    num_of_full_cols = num_of_rows - num_of_shaded_boxes
+
+    # Loop through the sorted keyword to figure out how long each column in
+    # the encrypted message is, and where it should go in the plaintext grid.
+    for char, original_index in key_order:
+        # A column's length is either num_of_cols or num_of_cols - 1.
+        # It depends on whether its original index falls into the "full" or "short" category.
+        if original_index < num_of_full_cols:
+            col_len = num_of_cols
+        else:
+            col_len = num_of_cols - 1
+            
+        # Slice the column from the message and place it in the correct position
+        plaintext_cols[original_index] = message[message_pointer : message_pointer + col_len]
+        message_pointer += col_len
+        
+    # --- 4. Read the message row by row from the unscrambled columns ---
+    plaintext = ""
+    for row_num in range(num_of_cols):
+        for col_data in plaintext_cols:
+            # Check if the current row exists in this column (to avoid index errors on short columns)
+            if row_num < len(col_data):
+                plaintext += col_data[row_num]
+
+    return plaintext
 
 
 ##################################################################
