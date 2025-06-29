@@ -72,7 +72,7 @@ def xgcd(a,b):
 def findModInverse(a,m):
     """Return the modular inverse of a%m, which is the number x such that a*x = 1 mod m."""
     if gcd(a,m) != 1:
-        return None # No mod inverse if a & m aren't relatively prime.
+        raise ValueError("Arguments must be relatively prime.") # No mod inverse if a & m aren't relatively prime.
     
     # Calculate using the extended Euclidean algorithm
     return xgcd(a,m)[1]%m
